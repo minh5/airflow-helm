@@ -49,7 +49,7 @@ RUN sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
 COPY ./requirements.txt .
 
 RUN pip install -r requirements.txt \
-    && pip install apache-airflow \
+    && pip install apache-airflow==1.9.0 \
     && apt-get remove --purge -yqq $buildDeps libpq-dev \
     && apt-get clean \
     && rm -rf \
