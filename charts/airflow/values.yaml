@@ -1,0 +1,64 @@
+global:
+  image: your_repo/your_image
+  imageTag: 0.0.4
+  pullPolicy: Always
+  restartPolicy: Always
+  dagStart: false
+  concurrency: 24
+app:
+  tier: web
+  replicas: 1
+  servicePort: 8080
+  containerPort: 8080
+  urlPath: /airflow
+worker:
+  tier: worker
+  updateStrategy: RollingUpdate
+  podPolicy: Parallel
+  replicas: 1 # careful when adjusting - you may encounter race conditions/faulty workers, better to just adjust global.concurrency
+  terminationPeriod: 30
+  containerPort: 8793
+  servicePort: 8793
+scheduler:
+  tier: scheduler
+  replicas: 1
+  restartPolicy: Always
+rabbitmq:
+  user: airflow
+  password: airflow
+  vhost: airflow
+flower:
+  name: flower
+  containerPort: 5555
+  servicePort: 5555
+  ingressClass: nginx
+  rewriteTarget: /
+  prefixPath: /flower
+persistence:
+  enabled: true
+  logs:
+    name: logs-storage
+    storageClass: generic
+    accessMode: ReadWriteOnce
+    requestSize: 1Gi
+    size: 8Gi
+    path: /usr/local/airflow/logs
+  dags:
+    name: dags-storage
+    storageClass: generic
+    accessMode: ReadWriteOnce
+    requestSize: 1Gi
+    size: 2Gi
+    path: /usr/local/airflow/dags
+postgres:
+  enabled: false
+  name: postgres
+  image: postgres:latest
+  imagePullPolicy: IfNotPresent
+  replicas: 1
+  tier: db
+  containerPort: 5432
+  auth:
+    user: myuser
+    password: mypassword
+    db: airflow

@@ -1,0 +1,25 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-app
+spec:
+  replicas: {{ .Values.app.replicas }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-app
+        tier: {{ .Values.app.tier }}
+    spec:
+      restartPolicy: {{ .Values.global.restartPolicy }}
+      containers:
+      - name: {{ .Release.Name }}-app
+        image: {{ .Values.global.image}}:{{ .Values.global.imageTag }}
+        imagePullPolicy: {{ .Values.global.pullPolicy }}
+        ports:
+          - containerPort: {{ .Values.app.containerPort }}
+        command: 
+          - "/bin/bash"
+          - "/tmp/config/bootstrap.sh"
+          - "-webserver"
+{{- include "common_deployment" . -}}

@@ -1,0 +1,64 @@
+## Bitnami RabbitMQ image version
+## ref: https://hub.docker.com/r/bitnami/rabbitmq/tags/
+##
+image: bitnami/rabbitmq:latest
+
+## Specify a imagePullPolicy
+## 'Always' if imageTag is 'latest', else set to 'IfNotPresent'
+# imagePullPolicy:
+
+## RabbitMQ application username
+rabbitmqUsername: airflow
+
+## RabbitMQ application password
+rabbitmqPassword: airflow
+
+## Erlang cookie to determine whether different nodes are allowed to communicate with each other
+# rabbitmqErlangCookie:
+
+## Node port
+rabbitmqNodePort: 5672
+
+## Node Type
+rabbitmqNodeType: stats
+
+## Node Name
+rabbitmqNodeName: rabbit
+
+## Node name to cluster with. e.g.: `clusternode@hostname`
+# rabbitmqClusterNodeName:
+
+## RabbitMQ application vhost
+rabbitmqVhost: airflow
+
+## RabbitMQ Manager port
+rabbitmqManagerPort: 15672
+
+## Kubernetes service type
+serviceType: ClusterIP
+
+persistence:
+  enabled: true
+  ## A manually managed Persistent Volume and Claim
+  ## Requires persistence.enabled: true
+  ## If defined, PVC must be created manually before volume will be bound
+  # existingClaim:
+
+  ## rabbitmq data Persistent Volume Storage Class
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  # storageClass: "-"
+  accessMode: ReadWriteOnce
+  size: 10Gi
+
+## Configure resource requests and limits
+## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+##
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 100m

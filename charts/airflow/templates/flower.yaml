@@ -1,0 +1,24 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ .Values.flower.name }}
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.flower.name }}
+    spec:
+      restartPolicy: {{ .Values.flower.restartPolicy }}
+      containers:
+      - name: {{ .Release.Name }}-{{ .Values.flower.name }}
+        image: {{ .Values.global.image }}:{{ .Values.global.imageTag }}
+        imagePullPolicy: {{ .Values.global.pullPolicy }}
+        ports:
+          - containerPort: {{ .Values.flower.containerPort }}
+        command:
+          - "/bin/bash"
+          - "/tmp/config/bootstrap.sh"
+          - "-flower"
+{{- include "common_deployment" . -}}

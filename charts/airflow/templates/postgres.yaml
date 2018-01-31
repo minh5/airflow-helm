@@ -1,0 +1,37 @@
+{{- if .Values.postgres.enabled }}
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ .Values.postgres.name }}
+spec:
+  replicas: {{ .Values.postgres.replicas }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+        tier: {{ .Values.postgres.tier }}
+    spec:
+      containers:
+      - name: {{ .Values.postgres.name }}
+        image: {{ .Values.postgres.image }}
+        imagePullPolicy: {{ .Values.postgres.imagePullPolicy}}
+        ports:
+          - containerPort: {{ .Values.postgres.containerPort }}
+{{- include "common_deployment" . -}}
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.postgres.name }}-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Release.Name }}
+  ports:
+    - name: {{ .Values.postgres.name }}
+      protocol: TCP
+      port: {{ .Values.postgres.containerPort }}
+      targetPort: {{ .Values.postgres.name }}  
+{{- end }}

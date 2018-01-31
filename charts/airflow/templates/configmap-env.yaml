@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config-env
+data:
+  RABBITMQ_DEFAULT_USER: {{ .Values.rabbitmq.user | default "airflow" | quote }}
+  RABBITMQ_DEFAULT_PASS: {{ .Values.rabbitmq.password | default "airflow" | quote }}
+  RABBITMQ_DEFAULT_VHOST: {{ .Values.rabbitmq.vhost | default "airflow" | quote }}
+  FLOWER_PORT: {{ .Values.flower.servicePort | quote }}
+  AIRFLOW_DB: postgresql+psycopg2://user:password@host:5432/db
+{{- if .Values.postgres.enabled }}
+  POSTGRES_USER: {{ .Values.postgres.auth.user | quote }}
+  POSTGRES_PASSWORD: {{ .Values.postgres.auth.password | quote }}
+  POSTGRES_DB: "airflow"
+  POSTGRES_DEPLOY: "exists"
+{{- end }}
