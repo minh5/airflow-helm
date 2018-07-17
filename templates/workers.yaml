@@ -28,6 +28,6 @@ spec:
           - containerPort: {{ .Values.worker.containerPort }}
         command: 
           - "/bin/bash"
-          - "/tmp/config/bootstrap.sh"
+          - "/tmp/config/init.sh"
           - "-worker"
 {{- include "common_deployment" . -}}

@@ -16,7 +16,8 @@
 *.tmp
 *~
 # Various IDEs
-.history
 .project
 .idea/
 *.tmproj
+# OWNERS file for Kubernetes
+OWNERS

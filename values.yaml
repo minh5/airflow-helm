@@ -1,32 +1,33 @@
 global:
-  image: your_repo/your_image
-  imageTag: 0.0.4
+  image: minh5/airflow
+  imageTag: 0.0.5
   pullPolicy: Always
   restartPolicy: Always
   dagStart: false
   concurrency: 24
+
 app:
   tier: web
   replicas: 1
   servicePort: 8080
   containerPort: 8080
   urlPath: /airflow
+
 worker:
   tier: worker
   updateStrategy: RollingUpdate
   podPolicy: Parallel
-  replicas: 1 # careful when adjusting - you may encounter race conditions/faulty workers, better to just adjust global.concurrency
+  replicas: 1
   terminationPeriod: 30
   containerPort: 8793
   servicePort: 8793
+
+
 scheduler:
   tier: scheduler
   replicas: 1
   restartPolicy: Always
-rabbitmq:
-  user: airflow
-  password: airflow
-  vhost: airflow
+
 flower:
   name: flower
   containerPort: 5555
@@ -34,6 +35,7 @@ flower:
   ingressClass: nginx
   rewriteTarget: /
   prefixPath: /flower
+  
 persistence:
   enabled: true
   logs:
@@ -42,23 +44,22 @@ persistence:
     accessMode: ReadWriteOnce
     requestSize: 1Gi
     size: 8Gi
-    path: /usr/local/airflow/logs
+    path: /home/airflow/logs
   dags:
     name: dags-storage
     storageClass: generic
     accessMode: ReadWriteOnce
     requestSize: 1Gi
     size: 2Gi
-    path: /usr/local/airflow/dags
-postgres:
-  enabled: false
-  name: postgres
-  image: postgres:latest
-  imagePullPolicy: IfNotPresent
-  replicas: 1
-  tier: db
-  containerPort: 5432
-  auth:
-    user: myuser
-    password: mypassword
-    db: airflow
+    path: /home/airflow/dags
+
+extra:
+  airflowConfigs: {}
+  envs:
+  pip:
+  secrets:
+
+initFile: |-
+  airflow initdb
+  bash /tmp/config/config.sh
+  bash /usr/local/bin/airflow-init $@

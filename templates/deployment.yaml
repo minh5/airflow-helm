@@ -20,6 +20,6 @@ spec:
           - containerPort: {{ .Values.app.containerPort }}
         command: 
           - "/bin/bash"
-          - "/tmp/config/bootstrap.sh"
+          - "/tmp/config/init.sh"
           - "-webserver"
 {{- include "common_deployment" . -}}

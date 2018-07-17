@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+data:
+  init.sh: {{ .Values.initFile | quote }}
+  requirements.txt:
+    {{ range $lib := .Values.extra.pip }}
+    {{ $lib }}
+    {{ end }}
+  config.sh: |-
+    #!/bin/bash
+    # pip install -r /tmp/config/requirements.txt
+    {{ range $key, $value := .Values.extra.airflowConfigs }}
+    {{ if contains "." $key }}
+    {{ $vars := $key | split "." }}
+    if grep -xq '\[{{ $vars._0 }}\]' $AIRFLOW_HOME/airflow.cfg; then
+      if grep -xq '^{{ $vars._1 }} = .*' $AIRFLOW_HOME/airflow.cfg; then
+        sed -i 's/^{{ $vars._1 }} = .*/{{ $vars._1 }} = {{ $value }}/' $AIRFLOW_HOME/airflow.cfg
+      else
+        sed -i '/^\[{{ $vars._0 }}\]/a {{ $vars._1 }} = {{ $value }}' $AIRFLOW_HOME/airflow.cfg
+      fi
+    else
+      echo '' >> $AIRFLOW_HOME/airflow.cfg
+      echo '[{{ $vars._0 }}]' >> $AIRFLOW_HOME/airflow.cfg
+      echo '{{ $vars._1 }} = {{ $value }}' >> $AIRFLOW_HOME/airflow.cfg
+    fi
+    {{ else }}
+    sed -i 's/^{{ $key }} = .*/{{ $key }} = {{ $value }}/' $AIRFLOW_HOME/airflow.cfg
+    {{ end }}
+    {{ end }}

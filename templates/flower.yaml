@@ -19,6 +19,6 @@ spec:
           - containerPort: {{ .Values.flower.containerPort }}
         command:
           - "/bin/bash"
-          - "/tmp/config/bootstrap.sh"
+          - "/tmp/config/init.sh"
           - "-flower"
 {{- include "common_deployment" . -}}

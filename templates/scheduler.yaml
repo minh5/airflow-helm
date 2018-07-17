@@ -18,14 +18,6 @@ spec:
         imagePullPolicy: {{ .Values.global.pullPolicy }}
         command:
           - "/bin/bash"
-          - "/tmp/config/bootstrap.sh"
+          - "/tmp/config/init.sh"
           - "-scheduler"
-        livenessProbe:
-          exec:
-            command:
-            - /bin/bash
-            - /usr/local/airflow/probe.sh
-          initialDelaySeconds: 3
-          timeoutSeconds: 1
-          periodSeconds: 3
 {{- include "common_deployment" . -}}
