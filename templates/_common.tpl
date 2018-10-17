@@ -1,31 +1,20 @@
 {{- define "common_deployment" }}
-      {{- if .Values.extra.envs }}
         env:
-        {{- range $key, $value := .Values.extra.envs }}
-          - name: {{ $key | quote }}
-            value: {{ $value | quote }}
-        {{- end }}
-      {{- end }}
-        {{ if .Values.extra.secrets }}          
-        envFrom:
-        {{ range $var := .Values.secrets }}
-          - secretRef:
-              name: {{ $var | quote }}
-        {{ end }}
-        {{ end }}
+        - name: AIRFLOW_KUBE_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: SQL_ALCHEMY_CONN
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-secrets
+              key: sql_alchemy_conn
         volumeMounts:
-          - name: "{{ .Release.Name }}-config"
-            mountPath: /tmp/config
-      volumes:
-      {{- if .Values.persistence.enabled }}          
-      - name: {{ .Values.persistence.dags.name | quote }}
-        persistentVolumeClaim:
-          claimName: {{ .Values.persistence.dags.name }}
-      - name: {{ .Values.persistence.logs.name | quote }}
-        persistentVolumeClaim:
-          claimName: {{ .Values.persistence.logs.name }}
-      {{ end }}
-      - name: "{{ .Release.Name }}-config"
-        configMap:
-          name: {{ .Release.Name }}-config
+        - name: {{ .Release.Name }}-configmap
+          mountPath: /root/airflow/airflow.cfg
+          subPath: airflow.cfg
+        - name: airflow-dags
+          mountPath: /root/airflow/dags
+        - name: airflow-logs
+          mountPath: /root/airflow/logs
 {{- end -}}

@@ -2,24 +2,79 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-app
+  name:  {{ .Release.Name }}
 spec:
-  replicas: {{ .Values.app.replicas }}
+  replicas: 1
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}-app
-        tier: {{ .Values.app.tier }}
+        name: {{ .Release.Name }}
     spec:
-      restartPolicy: {{ .Values.global.restartPolicy }}
+      initContainers:
+      - name: "init"
+        image: {{ .Release.Name }}
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: {{ .Release.Name }}-configmap
+          mountPath: /root/airflow/airflow.cfg
+          subPath: airflow.cfg
+        - name: {{ .Release.Name }}-dags
+          mountPath: /root/airflow/dags
+        - name: test-volume
+          mountPath: /root/test_volume
+        env:
+        - name: SQL_ALCHEMY_CONN
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-secrets
+              key: sql_alchemy_conn
+        command:
+          - "bash"
+        args:
+          - "-cx"
+          - "./tmp/airflow-test-env-init.sh"
       containers:
-      - name: {{ .Release.Name }}-app
-        image: {{ .Values.global.image}}:{{ .Values.global.imageTag }}
-        imagePullPolicy: {{ .Values.global.pullPolicy }}
+      - name: {{ .Values.app.name }}
+        image: {{ .Values.global.image }}
+        imageTag: {{ .Values.global.imageTag }}
+        imagePullPolicy: {{ .Values.global.image.pullPolicy }}
         ports:
-          - containerPort: {{ .Values.app.containerPort }}
-        command: 
-          - "/bin/bash"
-          - "/tmp/config/init.sh"
-          - "-webserver"
+        - name: {{ .Values.app.name }}
+          containerPort: {{ .Values.app.servicePort }}
+        args: ["webserver"]
 {{- include "common_deployment" . -}}
+{{ if .Values.probe.enabled}}
+       readinessProbe:
+         initialDelaySeconds: {{ .Values.probe.readiness.delaySeconds }}
+         timeoutSeconds: {{ .Values.probe.readiness.timeoutSeconds }}
+         periodSeconds: {{ .Values.probe.readiness.periodSeconds }}
+         httpGet:
+           path: {{ .Values.probe.readiness.http.path }}
+           port: {{ .Values.probe.readiness.http.port }}
+       livenessProbe:
+         initialDelaySeconds: {{ .Values.probe.liveness.delaySeconds }}
+         timeoutSeconds: {{ .Values.probe.liveness.timeoutSeconds }}
+         failureThreshold: {{ .Values.probe.liveness.failureThreshol }}
+         httpGet:
+           path: {{ .Values.probe.liveness.http.path }}
+           port: {{ .Values.probe.liveness.http.port }}
+{{- end }}
+      - name: scheduler
+        image: {{ .Values.global.image }}
+        imageTag: {{ .Values.global.imageTag }}
+        imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+        args: ["scheduler"]
+{{- include "common_deployment" . -}}
+      volumes:
+      - name: airflow-dags
+        persistentVolumeClaim:
+          claimName: airflow-dags
+      - name: test-volume
+        persistentVolumeClaim:
+          claimName: test-volume
+      - name: airflow-logs
+        persistentVolumeClaim:
+          claimName: airflow-logs
+      - name: airflow-configmap
+        configMap:
+          name: airflow-configmap 

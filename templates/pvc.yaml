@@ -1,19 +1,15 @@
 {{- if .Values.persistence.enabled }}
----
 kind: PersistentVolume
 apiVersion: v1
 metadata:
   name: {{ .Values.persistence.dags.name }}
-  labels:
-    type: {{ .Values.persistence.dags.storageClass }}
 spec:
+  accessModes:
+    - {{ .Values.persistence.dags.accessMode }}
   capacity:
     storage: {{ .Values.persistence.dags.size }}
-  accessModes:
-    - {{ .Values.persistence.dags.accessMode }}
   hostPath:
-    path: {{ default "usr/local/airflow/dags" .Values.persistence.dags.path | quote }}
-
+    path: {{ .Values.persistence.dags.path }}
 
 ---
 kind: PersistentVolumeClaim
@@ -22,27 +18,23 @@ metadata:
   name: {{ .Values.persistence.dags.name }}
 spec:
   accessModes:
-    - {{ .Values.persistence.dags.accessMode }}
+    - ReadWriteMany
   resources:
     requests:
-      storage: {{ .Values.persistence.dags.requestSize }}
-
+      storage: {{ .Values.persistence.dags.size }}
 
 ---
 kind: PersistentVolume
 apiVersion: v1
 metadata:
   name: {{ .Values.persistence.logs.name }}
-  labels:
-    type: {{ .Values.persistence.logs.storageClass }}
 spec:
-  capacity:
-    storage: {{ .Values.persistence.logs.size }}
   accessModes:
     - {{ .Values.persistence.logs.accessMode }}
+  capacity:
+    storage: {{ .Values.persistence.logs.size }}
   hostPath:
-    path: {{ default "usr/local/airflow/logs" .Values.persistence.logs.path | quote }}
-
+    path: {{ .Values.persistence.logs.path }}
 
 ---
 kind: PersistentVolumeClaim
@@ -54,5 +46,7 @@ spec:
     - {{ .Values.persistence.logs.accessMode }}
   resources:
     requests:
-      storage: {{ .Values.persistence.logs.requestSize }}
+      storage: {{ .Values.persistence.logs.size }}
+
 {{- end }}
+
